@@ -37,7 +37,7 @@
             <span class="glyphicon glyphicon-lock form-control-feedback"></span>
         </div>
         <div class="form-group has-success has-feedback">
-            <select class="form-control" >
+            <select id="ftype" class="form-control" name="type">
                 <option value="member">会员</option>
                 <option value="user">管理</option>
             </select>
@@ -59,9 +59,50 @@
 </div>
 <script src="${APP_PATH}/jquery/jquery-2.1.1.min.js"></script>
 <script src="${APP_PATH}/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="${APP_PATH}/jquery/layer/layer.js"></script>
 <script>
     function dologin() {
-        $("#loginForm").submit();
+        var floginacct = $("#floginacct");
+        var fuserpswd = $("#fuserpswd");
+        var ftype = $("#ftype");
+
+        var loadingIndex = -1;
+
+        //对于表单数据不能用null进行判断，如果文本框为空，获取的是""
+        if($.trim(floginacct.val()) == ""){
+            // alert("用户账号不能为空，请重新输入！");
+            layer.msg("用户账号不能为空，请重新输入！", {time:1000, icon:5, shift:6}, function () {
+                floginacct.val("");
+                floginacct.focus();
+            });
+            return false;
+        }
+
+        $.ajax({
+            type : "post",
+            data :{
+                "loginacct" : floginacct.val(),
+                "userpswd" : fuserpswd.val(),
+                "type" : ftype.val()
+            },
+            url : "${APP_PATH}/doLogin.do",
+            beforeSend : function () {
+                //表单校验
+                loadingIndex = layer.msg('处理中', {icon: 16});
+                return true;
+            },
+            success : function(result){
+                layer.close(loadingIndex);
+                if(result.success){
+                    window.location.href="${APP_PATH}/main.htm";
+                }else{
+                    layer.msg(result.message , {time: 1000, icon: 5, shift: 6});
+                }
+            },
+            error : function(){
+                layer.msg("登录失败！", {time: 1000, icon: 5, shift: 6});
+            }
+        });
         // var type = $(":selected").val();
         // if ( type == "user" ) {
         //     window.location.href = "main.html";

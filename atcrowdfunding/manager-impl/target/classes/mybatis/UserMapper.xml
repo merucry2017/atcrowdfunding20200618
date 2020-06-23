@@ -13,7 +13,8 @@
     delete from t_user
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <insert id="insert" parameterType="com.atcrowdfunding.bean.User">
+  <!--useGeneratedKeys="true" keyProperty="id"开启自动回填，把数据返回-->
+  <insert id="insert" parameterType="com.atcrowdfunding.bean.User" useGeneratedKeys="true" keyProperty="id">
     insert into t_user (id, loginacct, userpswd, 
       username, email, createtime
       )
@@ -24,10 +25,14 @@
   <update id="updateByPrimaryKey" parameterType="com.atcrowdfunding.bean.User">
     update t_user
     set loginacct = #{loginacct,jdbcType=VARCHAR},
-      userpswd = #{userpswd,jdbcType=CHAR},
+    <where>
+      <if test="userpswd != null">userpswd = #{userpswd,jdbcType=CHAR},</if>
+    </where>
       username = #{username,jdbcType=VARCHAR},
-      email = #{email,jdbcType=VARCHAR},
-      createtime = #{createtime,jdbcType=CHAR}
+      email = #{email,jdbcType=VARCHAR}
+    <where>
+      <if test="createtime != null">createtime = #{createtime,jdbcType=CHAR}</if>
+    </where>
     where id = #{id,jdbcType=INTEGER}
   </update>
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
@@ -44,5 +49,31 @@
     select id, loginacct, userpswd,
 	username, email, createtime
 	from t_user where loginacct=#{loginacct} and userpswd=#{userpswd}
+  </select>
+
+  <!--通过用户名username查找用户-->
+  <select id="selectByLoginacct" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select id, loginacct, userpswd, username, email, createtime
+    from t_user
+    where loginacct=#{loginacct}
+  </select>
+
+  <select id="queryList" resultMap="BaseResultMap">
+    select id, loginacct, userpswd,
+    username, email, createtime
+    from t_user
+    <where>
+      <if test="queryText != null">loginacct like concat("%", #{queryText}, "%")</if>
+    </where>
+    order by createtime desc
+    limit #{startIndex}, #{pagesize}
+  </select>
+
+  <select id="queryCount" resultType="int">
+    select count(*)
+    from t_user
+    <where>
+      <if test="queryText != null">loginacct like concat("%", #{queryText}, "%")</if>
+    </where>
   </select>
 </mapper>
